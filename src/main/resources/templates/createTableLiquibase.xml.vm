@@ -1,0 +1,50 @@
+#set($prefix = "")
+#set($end = "");
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+    <changeSet author="$!{author}" id="$!{id}">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="$!{tableName}"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="$!{tableName}">
+            <column name="id" type="${varchar.type}(36)">
+                <constraints primaryKey="true"/>
+            </column>
+            #foreach ($column in $!{columns})
+                 #if( $!column.type ==  "tinyint" )
+                    #set($type="number.tinyint")
+                 #elseif( $!column.type == "timestamp" )
+                    #set($type="timestamp")
+                 #elseif( $!column.type ==  "varchar" )
+                     #set($type="${varchar.type}($!column.length)")
+                 #end
+            <column name="${column.name}" type="$type">
+            </column>
+            #end
+            <column name="creator" type="${varchar.type}(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValueComputed="CURRENT_TIMESTAMP" name="gmt_create" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifier" type="${varchar.type}(64)"/>
+            <column defaultValueComputed="CURRENT_TIMESTAMP" name="gmt_modified" type="timestamp"/>
+            <column name="is_deleted" type="${number.tinyint}" remarks="1: deleted, 0: not_deleted" defaultValueComputed="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="trans_id" type="${varchar.type}(36)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <rollback>
+            <dropTable tableName="$!{tableName}"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
